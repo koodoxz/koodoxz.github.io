@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Executive Architecture Brief — MECOB Autonomous Networking Ecosystem</title>
+  <meta name="description" content="Executive Architecture Brief on MECOB Infrastructure: High-Performance Kernel Perimeter Defense, Zero-GC Determinism, and Enterprise TCO Governance. By E. Brillianto.">
+  <style>
+    :root {
+      --bg: #07080a;
+      --card-bg: #0d0f14;
+      --card-inner: #090b0f;
+      --border: #1a1e26;
+      --border-subtle: #14171e;
+      --border-highlight: #3b4354;
+      --text-heading: #f3f5f8;
+      --text-body: #8e96a4;
+      --text-muted: #5a6272;
+      --accent: #00f2fe;
+      --accent-subtle: rgba(0, 242, 254, 0.12);
+      --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 32px 32px;
+      color: var(--text-body);
+      font-family: var(--font-mono);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1.5rem 5rem 1.5rem;
+      line-height: 1.6;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 960px;
+    }
+
+    /* Masthead Navigation */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+    }
+
+    .brand-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      color: var(--text-heading);
+    }
+
+    .doc-type {
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .nav-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.45rem 0.9rem;
+      border: 1px solid var(--border-highlight);
+      background: var(--card-bg);
+      color: var(--text-heading);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: var(--border);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-primary {
+      background: var(--accent-subtle);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Document Sheet */
+    .document-sheet {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 3.5rem 3rem;
+      position: relative;
+    }
+
+    /* Header Metadata */
+    .doc-header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 2rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .classification-tag {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-subtle);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      padding: 0.25rem 0.6rem;
+      margin-bottom: 1.25rem;
+    }
+
+    h1.doc-title {
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: var(--text-heading);
+      letter-spacing: -0.01em;
+      line-height: 1.35;
+      margin-bottom: 0.75rem;
+    }
+
+    .doc-subtitle {
+      font-size: 0.92rem;
+      color: var(--text-body);
+      margin-bottom: 1.75rem;
+    }
+
+    .metadata-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+      background: var(--card-inner);
+      border: 1px solid var(--border-subtle);
+      padding: 1.25rem;
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .meta-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+
+    .meta-value {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-heading);
+    }
+
+    /* Sections */
+    section.brief-section {
+      margin-bottom: 2.5rem;
+    }
+
+    h2.section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-heading);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    h2.section-title::before {
+      content: "//";
+      color: var(--accent);
+    }
+
+    p.lead-paragraph {
+      font-size: 0.88rem;
+      color: var(--text-body);
+      line-height: 1.7;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Callout & Strategic Boxes */
+    .strategic-quote {
+      border-left: 3px solid var(--accent);
+      background: var(--card-inner);
+      padding: 1.15rem 1.4rem;
+      margin: 1.5rem 0;
+      font-size: 0.84rem;
+      color: var(--text-heading);
+      font-style: italic;
+    }
+
+    /* Structured Tables */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.78rem;
+    }
+
+    .data-table th, .data-table td {
+      border: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+
+    .data-table th {
+      background: var(--card-inner);
+      color: var(--text-heading);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+    }
+
+    .data-table td {
+      color: var(--text-body);
+    }
+
+    .highlight-cell {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Grid for Pillars */
+    .pillars-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+      margin: 1.5rem 0;
+    }
+
+    .pillar-card {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      padding: 1.25rem;
+    }
+
+    .pillar-card h3 {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.03em;
+    }
+
+    .pillar-card p {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* Footer Signoff */
+    .doc-signoff {
+      border-top: 1px solid var(--border);
+      padding-top: 1.75rem;
+      margin-top: 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* Print Stylesheet for Executive PDF Generation */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #1a1a1a !important;
+        padding: 0 !important;
+        font-family: var(--font-sans) !important;
+      }
+
+      .top-nav, .btn {
+        display: none !important;
+      }
+
+      .container {
+        max-width: 100% !important;
+      }
+
+      .document-sheet {
+        background: #ffffff !important;
+        border: none !important;
+        padding: 1.5cm !important;
+      }
+
+      .classification-tag {
+        background: #f0f0f0 !important;
+        border: 1px solid #ccc !important;
+        color: #000 !important;
+      }
+
+      h1.doc-title, h2.section-title, .meta-value, .pillar-card h3 {
+        color: #000000 !important;
+      }
+
+      .summary-text, p.lead-paragraph, .pillar-card p, .data-table td {
+        color: #333333 !important;
+      }
+
+      .metadata-grid, .pillar-card, .strategic-quote, .data-table th {
+        background: #f8f9fa !important;
+        border-color: #e2e8f0 !important;
+      }
+
+      .strategic-quote {
+        border-left: 3px solid #000000 !important;
+        color: #111111 !important;
+      }
+
+      .data-table th, .data-table td {
+        border-color: #e2e8f0 !important;
+      }
+
+      .highlight-cell {
+        color: #000000 !important;
+        font-weight: 700 !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .metadata-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .pillars-container {
+        grid-template-columns: 1fr;
+      }
+      .document-sheet {
+        padding: 2rem 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+      <div class="brand-group">
+        <span class="brand-name">MECOB</span>
+        <span class="doc-type">Executive Architecture Brief</span>
+      </div>
+      <div class="nav-actions">
+        <a href="index.html" class="btn">&larr; Architecture Portal</a>
+        <button onclick="window.print()" class="btn btn-primary">&#128438; Print / Save PDF</button>
+      </div>
+    </nav>
+
+    <!-- Document Sheet -->
+    <article class="document-sheet">
+
+      <!-- Masthead Header -->
+      <header class="doc-header">
+        <div class="classification-tag">Enterprise Architecture Reference</div>
+        <h1 class="doc-title">Autonomous Infrastructure, Kernel Defense, and Cost Governance</h1>
+        <div class="doc-subtitle">A Strategic Architecture Brief for Enterprise Technology Leadership & Technology Risk Committees</div>
+
+        <div class="metadata-grid">
+          <div class="meta-item">
+            <span class="meta-label">Architect & Author</span>
+            <span class="meta-value">E. Brillianto</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Primary Target</span>
+            <span class="meta-value">VP of IT / Group CTO</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Engineering Stack</span>
+            <span class="meta-value">Rust &middot; Go &middot; Linux eBPF</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Governance Standard</span>
+            <span class="meta-value">Zero-Telemetry / UU PDP</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Section 1: Strategic Problem -->
+      <section class="brief-section">
+        <h2 class="section-title">1. Executive Summary & Problem Context</h2>
+        <p class="lead-paragraph">
+          Modern enterprise digital operations are increasingly vulnerable to two compounding structural liabilities: <strong>third-party telemetry dependency</strong> and <strong>inefficient infrastructure unit economics</strong>. Conventional cloud infrastructure relies heavily on multi-layered SaaS appliances for edge routing, DNS resolution, and application firewalls. This creates recurring OpEx escalation (bandwidth egress and per-query charges), operational latency jitter from runtime garbage collection, and critical data exposure risks under strict regulatory regimes (such as Indonesia's UU PDP No. 27/2022 and international GDPR).
+        </p>
+
+        <div class="strategic-quote">
+          "True enterprise technology leadership is not measured by the number of SaaS licenses procured, but by the architectural resilience, deterministic cost control, and verifiable security governance of the underlying systems."
+        </div>
+
+        <p class="lead-paragraph">
+          The <strong>MECOB Architecture</strong> is an open reference implementation of an autonomous, zero-trust infrastructure stack. Engineered in <strong>Rust</strong> and <strong>Go</strong>, it decouples enterprise perimeter defense from commercial telemetry providers, shifting packet filtering to the Linux kernel driver layer and achieving sub-millisecond deterministic throughput.
+        </p>
+      </section>
+
+      <!-- Section 2: Architectural Separation -->
+      <section class="brief-section">
+        <h2 class="section-title">2. Architectural Paradigm: Tiered Separation of Concerns</h2>
+        <p class="lead-paragraph">
+          Traditional corporate networks suffer from the <em>"softirq bottleneck"</em>: when volumetric attacks strike, the Linux kernel spends 80%+ of its CPU budget simply parsing packet headers into socket buffers (<code style="color:var(--accent);">sk_buff</code>) before userspace firewalls can evaluate them. MECOB eliminates this architectural defect through strict physical tiering:
+        </p>
+
+        <div class="pillars-container">
+          <div class="pillar-card">
+            <h3>Tier 2: Kernel & Driver Substrate (Kalas)</h3>
+            <p>
+              Operates directly inside Linux eBPF / AF_XDP. Unauthenticated volumetric DDoS, SYN floods, and blacklisted network ranges are discarded at line rate (<code style="color:var(--accent);">XDP_DROP</code>) before the host OS allocates network socket buffers, preserving 60–70% of server CPU capacity.
+            </p>
+          </div>
+          <div class="pillar-card">
+            <h3>Tier 1: Userspace Zero-GC Engines (Runut & Tameng)</h3>
+            <p>
+              Protected behind the kernel substrate, core recursive DNS resolution (<strong>Runut</strong>) executes with zero GC pauses in Rust, while Layer 7 behavioral attack defense (<strong>Tameng</strong>) inspects payload semantics in Go without external sidecar overhead.
+            </p>
+          </div>
+          <div class="pillar-card">
+            <h3>Ingress Session Termination (Gapura)</h3>
+            <p>
+              Acts as the hardened public gateway, terminating encrypted sessions (DNS over QUIC, DoH, DoT) via Rustls, enforcing token-bucket rate limits, and routing sanitized traffic over private Unix Domain Sockets (UDS). Public port 53 is completely closed.
+            </p>
+          </div>
+          <div class="pillar-card">
+            <h3>Client Edge Courier (Caraka)</h3>
+            <p>
+              Lightweight (< 15 MB RAM) 0-RTT forwarder deployed on endpoints and remote branch gateways, transparently encrypting outbound organizational queries without requiring enterprise client software disruption.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Financial & TCO Analysis -->
+      <section class="brief-section">
+        <h2 class="section-title">3. Financial Governance & TCO Optimization</h2>
+        <p class="lead-paragraph">
+          From an executive finance and technology budgeting perspective, transitioning from fragmented commercial SaaS middleboxes to a deterministic autonomous stack produces significant CapEx and OpEx advantages:
+        </p>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Operational Vector</th>
+              <th>Legacy SaaS / Commercial Appliance</th>
+              <th>MECOB Autonomous Architecture</th>
+              <th>Executive Impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Hardware / Compute Footprint</strong></td>
+              <td>High multi-core VM sizing required to survive softirq interrupt storms.</td>
+              <td class="highlight-cell">Line-rate eBPF wire drop; < 15MB RAM profile for edge proxies.</td>
+              <td>Hardware / VM footprint reduced by 50%–65%.</td>
+            </tr>
+            <tr>
+              <td><strong>Query Bandwidth & Egress Costs</strong></td>
+              <td>Per-query billing and third-party SaaS middlebox inspection fees.</td>
+              <td class="highlight-cell">Self-hosted autonomous root recursive resolution (zero middlebox egress).</td>
+              <td>Eliminates variable usage-tier cloud cost spikes.</td>
+            </tr>
+            <tr>
+              <td><strong>Vendor Lock-in & Licensing</strong></td>
+              <td>Recurring multi-year enterprise enterprise enterprise licensing contracts.</td>
+              <td class="highlight-cell">Open source reference implementation (AGPL-3.0-or-later).</td>
+              <td>100% intellectual property ownership and governance.</td>
+            </tr>
+            <tr>
+              <td><strong>Latency Jitter & SLAs</strong></td>
+              <td>GC pause spikes (p99 > 35ms) during traffic bursts.</td>
+              <td class="highlight-cell">Zero-GC allocation determinism (p99 < 1.2ms).</td>
+              <td>Predictable mission-critical transaction uptime (99.999%).</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Section 4: Governance & Compliance -->
+      <section class="brief-section">
+        <h2 class="section-title">4. Regulatory Governance & Risk Mitigation</h2>
+        <p class="lead-paragraph">
+          <strong>Data Sovereignty & Privacy Mandates:</strong> Under Indonesia's Personal Data Protection Law (UU PDP No. 27/2022) and cross-border data transfer standards, routing enterprise DNS queries through foreign DNS-over-HTTPS providers exposes employee metadata, internal domain structures, and behavioral patterns to external analytics harvesting. MECOB adheres to an uncompromising <strong>Zero-Telemetry Principle</strong>:
+        </p>
+        <ul style="padding-left: 1.5rem; margin-bottom: 1.5rem; font-size: 0.82rem; color: var(--text-body);">
+          <li style="margin-bottom: 0.5rem;"><strong>No Remote Analytic Beacons:</strong> Zero external API telemetry calls embedded in any binary.</li>
+          <li style="margin-bottom: 0.5rem;"><strong>Autonomous Recursive Root Resolution:</strong> Queries resolve directly to global ICANN root servers without commercial intermediary logging.</li>
+          <li style="margin-bottom: 0.5rem;"><strong>Auditability & Formal Testing:</strong> Built under rigorous Evidence-Based TDD protocols with 100% automated GitHub Actions CI/CD gates.</li>
+        </ul>
+      </section>
+
+      <!-- Section 5: Transition Strategy -->
+      <section class="brief-section">
+        <h2 class="section-title">5. Enterprise Migration & Integration Strategy</h2>
+        <p class="lead-paragraph">
+          Adopting autonomous low-level infrastructure does not require a risky <em>"rip-and-replace"</em> cycle. The ecosystem is designed for progressive, zero-downtime phased rollout:
+        </p>
+        <ol style="padding-left: 1.5rem; margin-bottom: 1.5rem; font-size: 0.82rem; color: var(--text-body);">
+          <li style="margin-bottom: 0.5rem;"><strong>Phase 1 (Observation & Threat Sync):</strong> Deploy <code>tameng</code> in shadow monitoring mode behind existing reverse proxies; attach <code>kalas</code> eBPF in passive telemetry mode.</li>
+          <li style="margin-bottom: 0.5rem;"><strong>Phase 2 (Edge Forwarding):</strong> Route branch office traffic through <code>caraka</code> edge forwarders with DoQ transport to <code>gapura</code>.</li>
+          <li style="margin-bottom: 0.5rem;"><strong>Phase 3 (Core Cutover):</strong> Disconnect legacy public port 53, activating full autonomous root resolution via <code>runut</code> with wire-speed eBPF packet mitigation.</li>
+        </ol>
+      </section>
+
+      <!-- Document Signoff -->
+      <footer class="doc-signoff">
+        <div>
+          <span>Reference: MECOB-ARCH-2026-V1</span> &middot; 
+          <span>Autonomous Systems Architecture</span>
+        </div>
+        <div>
+          <span>Authored by: E. Brillianto &middot; github.com/koodoxz</span>
+        </div>
+      </footer>
+
+    </article>
+
+  </div>
+
+</body>
+</html>

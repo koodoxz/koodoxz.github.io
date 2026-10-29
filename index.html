@@ -54,10 +54,59 @@
     header.masthead {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
+      align-items: center;
       border-bottom: 1px solid var(--border);
       padding-bottom: 1.25rem;
       margin-bottom: 2.5rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .header-nav {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .brief-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: #00f2fe;
+      background: rgba(0, 242, 254, 0.08);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      padding: 0.35rem 0.85rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .brief-pill:hover {
+      background: rgba(0, 242, 254, 0.18);
+      border-color: #00f2fe;
+    }
+
+    .profile-pill {
+      font-size: 0.75rem;
+      color: var(--text-body);
+      border: 1px solid var(--border-highlight);
+      padding: 0.35rem 0.75rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .profile-pill:hover {
+      color: var(--text-heading);
+      border-color: var(--text-heading);
     }
 
     .org-brand {
@@ -465,8 +514,14 @@
 
     <!-- Masthead -->
     <header class="masthead">
-      <div class="org-brand">MECOB</div>
-      <div class="release-tag">AUTONOMOUS NETWORKING ECOSYSTEM // HOSTED BY @KOODOXZ // AGPL-3.0</div>
+      <div class="brand-group">
+        <span class="org-brand">MECOB</span>
+        <span class="release-tag">AUTONOMOUS NETWORKING ECOSYSTEM // HOSTED BY @KOODOXZ // AGPL-3.0</span>
+      </div>
+      <div class="header-nav">
+        <a href="brief.html" class="brief-pill">&#128196; Executive Brief</a>
+        <a href="https://github.com/koodoxz" class="profile-pill" target="_blank" rel="noopener">@koodoxz &rarr;</a>
+      </div>
     </header>
 
     <!-- Executive Summary Block -->
