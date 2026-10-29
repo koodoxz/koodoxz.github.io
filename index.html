@@ -474,17 +474,17 @@
       <div class="summary-label">Executive Summary</div>
       <h1 class="summary-title">Autonomous, Zero-GC Network Defense & Recursive Resolution Stack</h1>
       <p class="summary-text">
-        <strong>MECOB</strong> is an open-source, deterministic networking and DNS defense ecosystem engineered in pure Rust (hosted under <a href="https://github.com/koodoxz" target="_blank" rel="noopener" style="color:var(--text-heading);text-decoration:none;border-bottom:1px dotted var(--border-highlight);">@koodoxz</a>). It replaces legacy resolvers and exposed perimeter services with a unified, defense-in-depth architecture. By combining kernel-level packet filtering (eBPF/XDP), zero-round-trip encrypted transport (DoQ), and direct iterative root queries (RFC 1035), MECOB guarantees sub-millisecond predictability, zero garbage-collection pauses, and complete autonomy from centralized commercial middleboxes.
+        <strong>MECOB</strong> is an open-source, deterministic networking and defense ecosystem engineered in <strong>Rust and Go</strong> (hosted under <a href="https://github.com/koodoxz" target="_blank" rel="noopener" style="color:var(--text-heading);text-decoration:none;border-bottom:1px dotted var(--border-highlight);">@koodoxz</a>). It replaces legacy resolvers and exposed perimeter services with a unified, defense-in-depth architecture. By executing kernel-level packet drops (eBPF/XDP), zero-round-trip encrypted transport (DoQ), and direct iterative root queries (RFC 1035), MECOB guarantees sub-millisecond predictability, zero garbage-collection pauses, and complete autonomy from centralized commercial middleboxes.
       </p>
 
       <div class="pillars-grid">
         <div class="pillar-item">
-          <span class="pillar-name">01. Kernel Sentinel &mdash; Kalas</span>
-          <span class="pillar-desc">Drops volumetric attacks and SYN floods directly at the network card driver layer via eBPF/XDP before allocating kernel memory.</span>
+          <span class="pillar-name">01. L3/L4 Kernel Firewall &mdash; Kalas</span>
+          <span class="pillar-desc">Drops volumetric attacks, SYN floods, and blacklisted IPs directly at the network card driver layer via eBPF/XDP before allocating kernel memory.</span>
         </div>
         <div class="pillar-item">
           <span class="pillar-name">02. Encrypted Transport &mdash; Caraka + Gapura</span>
-          <span class="pillar-desc">Relays endpoint DNS traffic across public WANs via DNS over QUIC (RFC 9250), bypassing ISP inspection and UDP amplification.</span>
+          <span class="pillar-desc">Relays endpoint DNS traffic across public WANs via DNS over QUIC (RFC 9250), terminating TLS with token-bucket rate limiting.</span>
         </div>
         <div class="pillar-item">
           <span class="pillar-name">03. Autonomous Root DNS &mdash; Runut</span>
@@ -492,22 +492,22 @@
         </div>
         <div class="pillar-item">
           <span class="pillar-name">04. Threat Intelligence &mdash; Tameng</span>
-          <span class="pillar-desc">Persistent behavioral L7 WAF analyzing anomalous query entropy, dynamically pushing IP blocks to Kalas and domain filters to Runut.</span>
+          <span class="pillar-desc">Single-binary, ML-assisted L7 WAF in Go analyzing query entropy and dynamically synchronizing blocklists into Kalas eBPF maps and Runut Bloom filters.</span>
         </div>
       </div>
     </section>
 
-    <!-- Technical Schematic with Subtle Zone Boundaries & Live Packet Pulse -->
+    <!-- Technical Schematic with 2-Tier Architecture: Userspace vs Kernel Substrate -->
     <section class="blueprint-wrapper">
       <div class="blueprint-header">
-        <h2>Packet Ingress & Execution Pipeline</h2>
+        <h2>System Architecture & Execution Pipeline</h2>
         <div class="blueprint-legend">
           <div class="legend-item"><span class="legend-solid-line"></span> In-Line Data Plane (Active Stream)</div>
-          <div class="legend-item"><span class="legend-dashed-line"></span> Out-of-Band Control Plane (Threat Sync)</div>
+          <div class="legend-item"><span class="legend-dashed-line"></span> Out-of-Band Control Plane (Threat & Kernel Sync)</div>
         </div>
       </div>
 
-      <svg class="schematic-svg" viewBox="0 0 1000 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg class="schematic-svg" viewBox="0 0 1020 460" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
             <path d="M 0 1 L 8 5 L 0 9 z" fill="#e2e8f0"/>
@@ -515,114 +515,128 @@
           <marker id="arrow-sync" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
             <path d="M 0 1 L 8 5 L 0 9 z" fill="#818cf8"/>
           </marker>
+          <marker id="arrow-kernel" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 8 5 L 0 9 z" fill="#38bdf8"/>
+          </marker>
         </defs>
 
-        <!-- ZONE BOUNDARIES (SUBTLE RECTANGLES) -->
-        <!-- Zone 1: Endpoint -->
-        <rect class="zone-rect" x="15" y="15" width="215" height="390" rx="2" />
-        <text class="zone-title" x="25" y="35">ZONE 1 // CLIENT ENDPOINT</text>
+        <!-- ========================================== -->
+        <!-- TIER 1: USERSPACE RUNTIME (RING 3)         -->
+        <!-- ========================================== -->
+        <rect class="zone-rect" x="15" y="15" width="990" height="260" rx="2" />
+        <text class="zone-title" x="25" y="34">TIER 1 // USERSPACE APPLICATION RUNTIME (RING 3 : DOQ / TLS / UDS / RFC 1035)</text>
 
-        <!-- Zone 2: Perimeter Ingress -->
-        <rect class="zone-rect" x="245" y="15" width="310" height="390" rx="2" />
-        <text class="zone-title" x="255" y="35">ZONE 2 // PUBLIC PERIMETER</text>
-
-        <!-- Zone 3: Backend Core -->
-        <rect class="zone-rect" x="575" y="15" width="240" height="390" rx="2" />
-        <text class="zone-title" x="585" y="35">ZONE 3 // SECURE RESOLVER CORE</text>
-
-        <!-- Zone 4: Global Internet Root -->
-        <rect class="zone-rect" x="830" y="15" width="155" height="390" rx="2" />
-        <text class="zone-title" x="840" y="35">ZONE 4 // INTERNET ROOTS</text>
-
-        <!-- CONNECTIONS & WIRES (SOLID DATA PLANE + ANIMATED PULSES) -->
+        <!-- USERSPACE DATA PLANE WIRES -->
         <!-- Client -> Caraka -->
-        <path class="wire-base" d="M 90 170 L 125 170" />
-        <path class="wire-pulse" d="M 90 170 L 125 170" marker-end="url(#arrow)" />
+        <path class="wire-base" d="M 105 95 L 145 95" />
+        <path class="wire-pulse" d="M 105 95 L 145 95" marker-end="url(#arrow)" />
 
-        <!-- Caraka -> Kalas (Crosses Zone 1 -> Zone 2) -->
-        <path class="wire-base" d="M 215 170 L 265 170" />
-        <path class="wire-pulse" d="M 215 170 L 265 170" marker-end="url(#arrow)" />
+        <!-- Caraka -> Gapura (Public WAN DoQ) -->
+        <path class="wire-base" d="M 255 95 L 390 95" />
+        <path class="wire-pulse" d="M 255 95 L 390 95" marker-end="url(#arrow)" />
 
-        <!-- Kalas -> Gapura (65px clear spacing, no overlap) -->
-        <path class="wire-base" d="M 370 170 L 435 170" />
-        <path class="wire-pulse" d="M 370 170 L 435 170" marker-end="url(#arrow)" />
+        <!-- Gapura -> Runut (Local IPC / Zero-Copy) -->
+        <path class="wire-base" d="M 505 95 L 575 95" />
+        <path class="wire-pulse" d="M 505 95 L 575 95" marker-end="url(#arrow)" />
 
-        <!-- Gapura -> Runut (Crosses Zone 2 -> Zone 3, 60px clear spacing) -->
-        <path class="wire-base" d="M 540 170 L 600 170" />
-        <path class="wire-pulse" d="M 540 170 L 600 170" marker-end="url(#arrow)" />
+        <!-- Runut -> 13 Root Servers (Iterative Queries) -->
+        <path class="wire-base" d="M 700 95 L 835 95" />
+        <path class="wire-pulse" d="M 700 95 L 835 95" marker-end="url(#arrow)" />
 
-        <!-- Runut -> 13 Root Servers (Crosses Zone 3 -> Zone 4, 125px clear spacing) -->
-        <path class="wire-base" d="M 715 170 L 840 170" />
-        <path class="wire-pulse" d="M 715 170 L 840 170" marker-end="url(#arrow)" />
+        <!-- USERSPACE L7 THREAT SYNC WIRES (TAMENG) -->
+        <!-- Gapura -> Tameng -->
+        <path class="wire-sync-base" d="M 445 135 L 445 190" />
+        <path class="wire-sync-pulse" d="M 445 135 L 445 190" marker-end="url(#arrow-sync)" />
 
-        <!-- Tameng Control-Plane Sync Lines (Dashed Out-of-Band) -->
-        <path class="wire-sync-base" d="M 657 285 L 657 210" />
-        <path class="wire-sync-pulse" d="M 657 285 L 657 210" marker-end="url(#arrow-sync)" />
+        <!-- Tameng -> Runut -->
+        <path class="wire-sync-base" d="M 635 190 L 635 135" />
+        <path class="wire-sync-pulse" d="M 635 190 L 635 135" marker-end="url(#arrow-sync)" />
 
-        <path class="wire-sync-base" d="M 470 315 L 317 315 L 317 210" />
-        <path class="wire-sync-pulse" d="M 470 315 L 317 315 L 317 210" marker-end="url(#arrow-sync)" />
+        <!-- LABELS IN TIER 1 -->
+        <text class="wire-label" x="125" y="85" text-anchor="middle">UDP:53</text>
+        <text class="wire-label" x="322" y="85" text-anchor="middle">DoQ:8853 (Encrypted WAN / 0-RTT)</text>
+        <text class="wire-label" x="540" y="85" text-anchor="middle">IPC:UDS</text>
+        <text class="wire-label" x="767" y="85" text-anchor="middle">Iterative Queries (RFC 1035)</text>
+        <text class="wire-label" x="395" y="165" text-anchor="middle">L7 Audit</text>
+        <text class="wire-label" x="695" y="165" text-anchor="middle">Bloom Sync</text>
 
-        <!-- WIRE PROTOCOL LABELS (POSITIONED WITHOUT CLIPPING) -->
-        <text class="wire-label" x="107" y="158" text-anchor="middle">UDP:53</text>
-        <text class="wire-label" x="240" y="158" text-anchor="middle">DoQ:8853</text>
-        <text class="wire-label" x="402" y="158" text-anchor="middle">XDP_PASS</text>
-        <text class="wire-label" x="570" y="158" text-anchor="middle">IPC:UDS</text>
-        <text class="wire-label" x="777" y="158" text-anchor="middle">Iterative Queries (RFC 1035)</text>
-        <text class="wire-label" x="667" y="250">Bloom Sync</text>
-        <text class="wire-label" x="390" y="308">eBPF Map Sync</text>
-
-        <!-- NODES -->
-        <!-- Node 0: Client Stub -->
+        <!-- NODES IN TIER 1 -->
+        <!-- Client Stub -->
         <g class="node-group" onclick="selectNode('client')">
-          <rect class="node-box" x="25" y="140" width="65" height="60" rx="1" />
-          <text class="node-name" x="57" y="168" text-anchor="middle" font-size="10">CLIENT</text>
-          <text class="node-role" x="57" y="184" text-anchor="middle">OS STUB</text>
+          <rect class="node-box" x="35" y="65" width="70" height="60" rx="1" />
+          <text class="node-name" x="70" y="93" text-anchor="middle" font-size="10">CLIENT</text>
+          <text class="node-role" x="70" y="108" text-anchor="middle">OS STUB</text>
         </g>
 
-        <!-- Node 1: Caraka -->
+        <!-- Caraka (Edge Proxy) -->
         <g id="node-caraka" class="node-group" onclick="selectNode('caraka')">
-          <rect class="node-box" x="125" y="130" width="90" height="80" rx="1" />
-          <text class="node-name" x="170" y="160" text-anchor="middle">CARAKA</text>
-          <text class="node-role" x="170" y="178" text-anchor="middle">EDGE FORWARDER</text>
-          <text class="node-spec" x="170" y="194" text-anchor="middle">0-RTT DoQ Client</text>
+          <rect class="node-box" x="145" y="55" width="110" height="80" rx="1" />
+          <text class="node-name" x="200" y="85" text-anchor="middle">CARAKA</text>
+          <text class="node-role" x="200" y="102" text-anchor="middle">EDGE FORWARDER</text>
+          <text class="node-spec" x="200" y="118" text-anchor="middle">0-RTT DoQ Client</text>
         </g>
 
-        <!-- Node 2: Kalas -->
-        <g id="node-kalas" class="node-group" onclick="selectNode('kalas')">
-          <rect class="node-box" x="265" y="130" width="105" height="80" rx="1" />
-          <text class="node-name" x="317" y="160" text-anchor="middle">KALAS</text>
-          <text class="node-role" x="317" y="178" text-anchor="middle">KERNEL SENTINEL</text>
-          <text class="node-spec" x="317" y="194" text-anchor="middle">eBPF / AF_XDP Driver</text>
-        </g>
-
-        <!-- Node 3: Gapura -->
+        <!-- Gapura (Ingress Gateway) -->
         <g id="node-gapura" class="node-group" onclick="selectNode('gapura')">
-          <rect class="node-box" x="435" y="130" width="105" height="80" rx="1" />
-          <text class="node-name" x="487" y="160" text-anchor="middle">GAPURA</text>
-          <text class="node-role" x="487" y="178" text-anchor="middle">INGRESS GATEWAY</text>
-          <text class="node-spec" x="487" y="194" text-anchor="middle">TLS / DoH / DoT / DoQ</text>
+          <rect class="node-box" x="390" y="55" width="115" height="80" rx="1" />
+          <text class="node-name" x="447" y="85" text-anchor="middle">GAPURA</text>
+          <text class="node-role" x="447" y="102" text-anchor="middle">INGRESS GATEWAY</text>
+          <text class="node-spec" x="447" y="118" text-anchor="middle">TLS / DoH / DoT / DoQ</text>
         </g>
 
-        <!-- Node 4: Runut (Default Selected) -->
+        <!-- Runut (Recursive Resolver Core - Default Active) -->
         <g id="node-runut" class="node-group active-node" onclick="selectNode('runut')">
-          <rect class="node-box" x="600" y="130" width="115" height="80" rx="1" />
-          <text class="node-name" x="657" y="160" text-anchor="middle">RUNUT</text>
-          <text class="node-role" x="657" y="178" text-anchor="middle">RECURSIVE RESOLVER</text>
-          <text class="node-spec" x="657" y="194" text-anchor="middle">Zero-GC Root Engine</text>
+          <rect class="node-box" x="575" y="55" width="125" height="80" rx="1" />
+          <text class="node-name" x="637" y="85" text-anchor="middle">RUNUT</text>
+          <text class="node-role" x="637" y="102" text-anchor="middle">RECURSIVE RESOLVER</text>
+          <text class="node-spec" x="637" y="118" text-anchor="middle">Zero-GC Root Engine</text>
         </g>
 
-        <!-- Node 5: Tameng -->
-        <g id="node-tameng" class="node-group" onclick="selectNode('tameng')">
-          <rect class="node-box" x="470" y="285" width="230" height="60" rx="1" />
-          <text class="node-name" x="585" y="312" text-anchor="middle">TAMENG (L7 WAF)</text>
-          <text class="node-role" x="585" y="328" text-anchor="middle">DYNAMIC THREAT INTELLIGENCE FEED</text>
-        </g>
-
-        <!-- Node 6: 13 Root Servers (Linear Right) -->
+        <!-- 13 Root Servers -->
         <g id="node-roots" class="node-group" onclick="selectNode('roots')">
-          <rect class="node-box" x="840" y="135" width="140" height="70" rx="1" />
-          <text class="node-name" x="910" y="164" text-anchor="middle" font-size="11">13 ROOT SERVERS</text>
-          <text class="node-role" x="910" y="180" text-anchor="middle">A.ROOT .. M.ROOT</text>
+          <rect class="node-box" x="835" y="60" width="150" height="70" rx="1" />
+          <text class="node-name" x="910" y="89" text-anchor="middle" font-size="11">13 ROOT SERVERS</text>
+          <text class="node-role" x="910" y="105" text-anchor="middle">A.ROOT .. M.ROOT</text>
+        </g>
+
+        <!-- Tameng (L7 WAF) -->
+        <g id="node-tameng" class="node-group" onclick="selectNode('tameng')">
+          <rect class="node-box" x="445" y="190" width="210" height="55" rx="1" />
+          <text class="node-name" x="550" y="214" text-anchor="middle">TAMENG (L7 WAF)</text>
+          <text class="node-role" x="550" y="230" text-anchor="middle">BEHAVIORAL THREAT HEURISTICS</text>
+        </g>
+
+
+        <!-- ========================================== -->
+        <!-- TIER 2: KERNEL & NIC SUBSTRATE (RING 0)    -->
+        <!-- ========================================== -->
+        <rect class="zone-rect" x="310" y="295" width="695" height="150" rx="2" />
+        <text class="zone-title" x="320" y="314">TIER 2 // KERNEL & NIC DRIVER SUBSTRATE (RING 0 : eBPF / AF_XDP WIRE-SPEED PERIMETER)</text>
+
+        <!-- KERNEL HOOK WIRES CONNECTING TO USERSPACE -->
+        <!-- Kalas to Gapura: Wire-speed XDP_PASS -->
+        <path class="wire-sync-base" d="M 420 345 L 420 135" />
+        <path class="wire-sync-pulse" d="M 420 345 L 420 135" marker-end="url(#arrow-kernel)" />
+
+        <!-- Tameng to Kalas: eBPF Map Sync -->
+        <path class="wire-sync-base" d="M 550 245 L 550 345" />
+        <path class="wire-sync-pulse" d="M 550 245 L 550 345" marker-end="url(#arrow-kernel)" />
+
+        <!-- Kalas to Runut: AF_XDP Zero-Copy -->
+        <path class="wire-sync-base" d="M 660 345 L 660 135" />
+        <path class="wire-sync-pulse" d="M 660 345 L 660 135" marker-end="url(#arrow-kernel)" />
+
+        <!-- KERNEL CONNECTOR LABELS -->
+        <text class="wire-label" x="405" y="265" text-anchor="end" fill="#38bdf8">XDP_PASS</text>
+        <text class="wire-label" x="560" y="275" text-anchor="start" fill="#818cf8">eBPF Map Sync</text>
+        <text class="wire-label" x="675" y="265" text-anchor="start" fill="#38bdf8">AF_XDP Zero-Copy</text>
+
+        <!-- WIDE SUBSTRATE NODE: KALAS -->
+        <g id="node-kalas" class="node-group" onclick="selectNode('kalas')">
+          <rect class="node-box" x="330" y="345" width="655" height="85" rx="1" />
+          <text class="node-name" x="657" y="375" text-anchor="middle" font-size="13">KALAS &mdash; HIGH-SPEED L3/L4 KERNEL FIREWALL</text>
+          <text class="node-role" x="657" y="394" text-anchor="middle" font-size="9.5">eBPF / AF_XDP NIC DRIVER SENTINEL &bull; WIRE-SPEED XDP_DROP &bull; ZERO-COPY RX BYPASS</text>
+          <text class="node-spec" x="657" y="411" text-anchor="middle" font-size="8.5">Omnipresent Kernel Substrate directly shielding Gapura, Runut, and Host Perimeter at Hardware Line-Rate</text>
         </g>
       </svg>
     </section>
@@ -676,9 +690,9 @@
 
     <!-- Footer -->
     <footer>
-      <div>MECOB ECOSYSTEM &middot; OPEN SOURCE HIGH-PERFORMANCE NETWORKING &middot; AGPL-3.0</div>
+      <div>MECOB ECOSYSTEM &middot; DEDICATED LOW-LATENCY INFRASTRUCTURE IN RUST & GO &middot; AGPL-3.0</div>
       <div>
-        <a href="https://github.com/koodoxz" target="_blank" rel="noopener">GitHub: @koodoxz</a>
+        Maintained by <a href="https://github.com/koodoxz" target="_blank" rel="noopener">@koodoxz</a> &middot; Explore broader research on <a href="https://github.com/koodoxz" target="_blank" rel="noopener">GitHub &rarr;</a>
       </div>
     </footer>
 
@@ -700,7 +714,7 @@
       },
       caraka: {
         name: "CARAKA",
-        layer: "ZONE 1 // EDGE PROXY CLIENT",
+        layer: "TIER 1 // EDGE PROXY CLIENT",
         desc: "Ultra-lightweight DNS over QUIC (DoQ, RFC 9250) edge forwarder written in Rust. Accepts plaintext DNS queries on localhost and wraps them into encrypted, zero-round-trip QUIC datagrams destined for public ingress gateways.",
         mem: "< 15 MB Footprint",
         lat: "0-RTT Handshake",
@@ -711,18 +725,18 @@
       },
       kalas: {
         name: "KALAS",
-        layer: "ZONE 2 // KERNEL PACKET SENTINEL",
-        desc: "High-speed Layer 3 & Layer 4 kernel sentry built on Linux eBPF and AF_XDP. Intercepts incoming network frames directly at the NIC driver hook, dropping volumetric floods, SYN attacks, and blacklisted IPs via XDP_DROP before packet allocation in kernel RAM.",
+        layer: "TIER 2 // L3/L4 KERNEL FIREWALL (eBPF / AF_XDP)",
+        desc: "High-speed Layer 3 & Layer 4 kernel firewall running via eBPF and AF_XDP at the network card driver. Operates as an omnipresent kernel shield under Gapura, Runut, and Tameng, dropping volumetric floods (SYN attacks, UDP amplification) at wire speed before packet allocation in kernel RAM.",
         mem: "Zero Kernel Allocation",
         lat: "< 850 Nanoseconds",
-        tput: "Hardware Wire-Speed",
-        wire: "NIC Driver (XDP_PASS)",
+        tput: "Hardware Line-Rate (10M+ pps)",
+        wire: "NIC Driver Hook (XDP_DROP / XDP_PASS)",
         repo: "https://github.com/koodoxz/kalas",
         note: "eBPF / AF_XDP &middot; AGPL-3.0-or-later &middot; Release v0.1.0"
       },
       gapura: {
         name: "GAPURA",
-        layer: "ZONE 2 // INGRESS GATEWAY",
+        layer: "TIER 1 // INGRESS GATEWAY",
         desc: "Sovereign public entry portal terminating encrypted DNS protocols (DoQ :8853, DoH :443, DoT :853). Enforces per-subnet token-bucket rate limiting and decodes queries before handing them to the backend resolver over private IPC.",
         mem: "Sharded Worker Pools",
         lat: "< 0.15 ms Overhead",
@@ -733,7 +747,7 @@
       },
       runut: {
         name: "RUNUT",
-        layer: "ZONE 3 // RECURSIVE RESOLVER CORE",
+        layer: "TIER 1 // RECURSIVE RESOLVER CORE",
         desc: "High-performance recursive DNS root resolver in pure Rust. Operates with an absolute zero-GC memory allocation profile, sharded lock-free LRU caches, and direct iterative queries to the 13 Root Servers without reliance on commercial intermediaries.",
         mem: "Zero-GC / Arena Alloc",
         lat: "P99 < 1.00 ms",
@@ -744,8 +758,8 @@
       },
       tameng: {
         name: "TAMENG",
-        layer: "ZONE 3 // BEHAVIORAL L7 WAF",
-        desc: "Single-binary, ML-assisted Web Application Firewall and Threat Intelligence Engine. Analyzes anomalous query entropy (DGA, DNS tunneling) and dynamically pushes synchronized blocklists into Kalas eBPF maps and Runut Bloom filters.",
+        layer: "TIER 1 // BEHAVIORAL L7 WAF",
+        desc: "Single-binary, ML-assisted Web Application Firewall in Go. Analyzes anomalous query entropy (DGA, DNS tunneling) and dynamically pushes synchronized blocklists into Kalas eBPF maps and Runut Bloom filters.",
         mem: "Persistent Actor Map",
         lat: "Real-Time Heuristics",
         tput: "Full Perimeter Sync",
@@ -755,7 +769,7 @@
       },
       roots: {
         name: "13 ROOT SERVERS",
-        layer: "ZONE 4 // GLOBAL INTERNET HIERARCHY",
+        layer: "TIER 1 // GLOBAL INTERNET HIERARCHY",
         desc: "The authoritative apex of the global Domain Name System (A.ROOT-SERVERS.NET through M.ROOT-SERVERS.NET). Runut performs direct iterative root queries against these systems without passing telemetry to commercial middleboxes.",
         mem: "Anycast Global",
         lat: "Network Bound",
