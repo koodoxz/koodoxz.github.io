@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KOODOXZ :: ARCHITECTURE SPECIFICATION</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #000000;
+      color: #b0b0b0;
+      font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 2.5rem 1.5rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    header {
+      border-bottom: 1px solid #222222;
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.25rem;
+    }
+
+    .doc-meta {
+      color: #555555;
+      font-size: 11px;
+    }
+
+    section {
+      margin-bottom: 2.5rem;
+    }
+
+    h2 {
+      font-size: 12px;
+      font-weight: 700;
+      color: #888888;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 1rem;
+      border-left: 2px solid #444444;
+      padding-left: 0.5rem;
+    }
+
+    /* Topology Preformatted Box */
+    .topology-box {
+      background: #050505;
+      border: 1px solid #1a1a1a;
+      padding: 1.75rem;
+      color: #d4d4d4;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .topology-box a {
+      color: #ffffff;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .topology-box a:hover {
+      background: #222222;
+    }
+
+    /* Subsystem Matrix Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 12px;
+    }
+
+    th, td {
+      border: 1px solid #1a1a1a;
+      padding: 0.65rem 0.85rem;
+      text-align: left;
+    }
+
+    th {
+      background: #080808;
+      color: #777777;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 10.5px;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      color: #a0a0a0;
+    }
+
+    td.code-col {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    td a {
+      color: #ffffff;
+      text-decoration: none;
+      border-bottom: 1px dotted #555555;
+    }
+
+    td a:hover {
+      border-bottom: 1px solid #ffffff;
+    }
+
+    /* Invariant List */
+    ul.invariants {
+      list-style: none;
+      border: 1px solid #1a1a1a;
+      background: #050505;
+      padding: 1rem 1.25rem;
+    }
+
+    ul.invariants li {
+      margin-bottom: 0.5rem;
+      color: #888888;
+    }
+
+    ul.invariants li:last-child {
+      margin-bottom: 0;
+    }
+
+    ul.invariants strong {
+      color: #d4d4d4;
+    }
+
+    footer {
+      border-top: 1px solid #1a1a1a;
+      padding-top: 1.5rem;
+      color: #444444;
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    footer a {
+      color: #666666;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      color: #aaaaaa;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>KOODOXZ // SOVEREIGN NETWORKING STACK</h1>
+    <div class="doc-meta">DOCUMENT: RFC-KDXZ-ARCH-01 | CLASSIFICATION: OPEN SOURCE (AGPL-3.0) | TARGET: LINUX KERNEL / RUST</div>
+  </header>
+
+  <section>
+    <h2>01. End-to-End Packet Ingress Topology</h2>
+    <div class="topology-box"><pre>
+  [ Client Workstation / Localhost Stub ]
+                     │
+                     │  Plaintext DNS (127.0.0.1:53)
+                     ▼
+             ┌──────────────┐
+             │  <a href="https://github.com/koodoxz/caraka">CARAKA</a>      │  0-RTT DNS over QUIC (DoQ) Edge Client
+             └──────┬───────┘
+                    │  Encrypted QUIC Payload (UDP :8853)
+                    ▼
+             ┌──────────────┐
+             │  <a href="https://github.com/koodoxz/kalas">KALAS</a>       │  Layer 3 & 4 eBPF / XDP Kernel Sentry
+             └──────┬───────┘  (Drops SYN-floods & volumetric attacks at NIC wire speed)
+                    │  Validated Ingress Packets (XDP_PASS)
+                    ▼
+             ┌──────────────┐
+             │  <a href="https://github.com/koodoxz/gapura">GAPURA</a>      │  Ingress Gateway: Rate Limiting & TLS/DoH/DoT/DoQ Termination
+             └──────┬───────┘
+                    │  Zero-Copy Internal Wire / Unix Domain Socket
+                    ▼
+             ┌──────────────┐        Real-Time Feeds        ┌──────────────┐
+             │  <a href="https://github.com/koodoxz/runut">RUNUT</a>       │ ◄───────────────────────────► │  <a href="https://github.com/koodoxz/tameng">TAMENG</a>      │
+             └──────┬───────┘   Sharded Bloom Filter Sync   └──────────────┘
+                    │           DGA / Tunneling Detection    Autonomous L7 WAF
+                    │
+                    ▼  Direct Iterative Resolution (RFC 1035)
+     [ 13 INTERNET ROOT SERVERS (A.ROOT-SERVERS.NET .. M.ROOT-SERVERS.NET) ]
+</pre></div>
+  </section>
+
+  <section>
+    <h2>02. Component Registry & Specification Matrix</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Subsystem</th>
+          <th>Layer</th>
+          <th>Primary Mechanism</th>
+          <th>Deterministic Target</th>
+          <th>Repository</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="code-col">CARAKA</td>
+          <td>Endpoint / Edge</td>
+          <td>DNS over QUIC (RFC 9250) client relay</td>
+          <td>0-RTT handshake, &lt; 15 MB footprint</td>
+          <td><a href="https://github.com/koodoxz/caraka">koodoxz/caraka</a></td>
+        </tr>
+        <tr>
+          <td class="code-col">KALAS</td>
+          <td>Layer 3 / 4</td>
+          <td>eBPF / AF_XDP NIC driver hook</td>
+          <td>Sub-microsecond XDP_DROP at wire speed</td>
+          <td><a href="https://github.com/koodoxz/kalas">koodoxz/kalas</a></td>
+        </tr>
+        <tr>
+          <td class="code-col">GAPURA</td>
+          <td>Transport / TLS</td>
+          <td>Multi-protocol gateway (DoH, DoT, DoQ)</td>
+          <td>Token-bucket rate limiting per /64 subnet</td>
+          <td><a href="https://github.com/koodoxz/gapura">koodoxz/gapura</a></td>
+        </tr>
+        <tr>
+          <td class="code-col">RUNUT</td>
+          <td>Layer 7 (DNS Core)</td>
+          <td>Zero-GC recursive iterative root resolver</td>
+          <td>P99 &lt; 1.00 ms, lock-free LRU sharding</td>
+          <td><a href="https://github.com/koodoxz/runut">koodoxz/runut</a></td>
+        </tr>
+        <tr>
+          <td class="code-col">TAMENG</td>
+          <td>Layer 7 (WAF)</td>
+          <td>Behavioral defense & ML-assisted heuristics</td>
+          <td>Live threat feed sync across perimeter</td>
+          <td><a href="https://github.com/koodoxz/tameng">koodoxz/tameng</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>03. Core Invariants</h2>
+    <ul class="invariants">
+      <li>&bull; <strong>Zero Garbage Collection:</strong> Written in pure Rust with strict lifetime ownership to prevent memory latency spikes.</li>
+      <li>&bull; <strong>Sovereign Hierarchy:</strong> Resolves directly from the 13 Root Servers without upstream telemetry tracking.</li>
+      <li>&bull; <strong>Driver-Level Dropping:</strong> Volumetric attacks are eliminated via XDP before entering userspace application memory.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <div>KOODOXZ FOUNDATION &middot; AGPL-3.0-OR-LATER</div>
+    <div><a href="https://github.com/koodoxz">github.com/koodoxz</a></div>
+  </footer>
+
+</body>
+</html>

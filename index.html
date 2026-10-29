@@ -3,310 +3,738 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KOODOXZ — High-Performance Sovereign Networking</title>
-  <meta name="description" content="High-performance, zero-allocation networking and DNS ecosystem built in Rust with eBPF, AF_XDP, and QUIC.">
+  <title>KOODOXZ — Systems Architecture Specification</title>
+  <meta name="description" content="Sovereign networking and DNS defense ecosystem in Rust with eBPF, AF_XDP, DoQ, and Zero-GC root resolution.">
   <style>
-    :root {
-      --bg: #07090e;
-      --card-bg: rgba(13, 17, 23, 0.7);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --accent-cyan: #00f2fe;
-      --accent-emerald: #10b981;
-      --accent-purple: #8b5cf6;
-      --accent-amber: #f59e0b;
-      --text-primary: #f3f4f6;
-      --text-secondary: #9ca3af;
-      --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
-      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-
+    /* BASE RESETS */
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
 
-    body {
-      background-color: var(--bg);
-      background-image: 
-        radial-gradient(circle at 50% 0%, rgba(0, 242, 254, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 40%),
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
-      color: var(--text-primary);
-      font-family: var(--font-sans);
-      min-height: 100vh;
+    /* TOP SWITCHER BAR */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #000000;
+      border-bottom: 1px solid #1c1f26;
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      padding: 4rem 1.5rem 2rem 1.5rem;
-      overflow-x: hidden;
+      padding: 0.6rem 1.5rem;
+      font-family: ui-monospace, "SF Mono", "JetBrains Mono", Consolas, monospace;
+      font-size: 11.5px;
     }
 
-    header {
-      text-align: center;
-      max-width: 650px;
-      margin-bottom: 3.5rem;
-    }
-
-    .brand {
-      font-family: var(--font-mono);
-      font-size: 0.9rem;
-      letter-spacing: 0.35em;
-      text-transform: uppercase;
-      color: var(--accent-cyan);
-      margin-bottom: 1rem;
-      display: inline-block;
-      padding: 0.3rem 0.8rem;
-      border: 1px solid rgba(0, 242, 254, 0.2);
-      border-radius: 4px;
-      background: rgba(0, 242, 254, 0.03);
-    }
-
-    h1 {
-      font-size: 2.2rem;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      margin-bottom: 0.75rem;
-      background: linear-gradient(180deg, #ffffff 0%, #a1a1aa 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    p.tagline {
-      font-size: 1rem;
-      color: var(--text-secondary);
-      font-weight: 400;
-      line-height: 1.5;
-    }
-
-    /* Architecture Flow Container */
-    .ecosystem-container {
-      width: 100%;
-      max-width: 820px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1.5rem;
-      position: relative;
-    }
-
-    .node-card {
-      width: 100%;
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.5rem 2rem;
-      text-decoration: none;
-      color: inherit;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      display: grid;
-      grid-template-columns: 140px 1fr auto;
-      align-items: center;
-      gap: 1.5rem;
-      position: relative;
-    }
-
-    .node-card:hover {
-      border-color: rgba(255, 255, 255, 0.25);
-      transform: translateY(-2px);
-      box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
-    }
-
-    .node-card.runut:hover { border-color: var(--accent-cyan); }
-    .node-card.gapura:hover { border-color: var(--accent-purple); }
-    .node-card.kalas:hover { border-color: var(--accent-emerald); }
-    .node-card.caraka:hover { border-color: var(--accent-amber); }
-
-    .node-title-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-    }
-
-    .node-title {
-      font-family: var(--font-mono);
-      font-size: 1.35rem;
-      font-weight: 700;
+    .top-meta {
+      color: #616876;
       letter-spacing: 0.05em;
     }
 
-    .runut .node-title { color: var(--accent-cyan); }
-    .gapura .node-title { color: var(--accent-purple); }
-    .kalas .node-title { color: var(--accent-emerald); }
-    .caraka .node-title { color: var(--accent-amber); }
-
-    .node-role {
-      font-size: 0.75rem;
-      font-family: var(--font-mono);
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
+    .view-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
-    .node-desc {
-      font-size: 0.92rem;
-      color: #d1d5db;
-      line-height: 1.45;
+    .view-label {
+      color: #616876;
+      font-size: 11px;
     }
 
-    .node-specs {
+    .view-btn {
+      background: #0d0f14;
+      border: 1px solid #232733;
+      color: #8b92a0;
+      font-family: inherit;
+      font-size: 11px;
+      padding: 0.25rem 0.65rem;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.15s ease;
+    }
+
+    .view-btn:hover {
+      color: #ffffff;
+      border-color: #434a5d;
+    }
+
+    .view-btn.active {
+      background: #1c2230;
+      color: #ffffff;
+      border-color: #5c6784;
+      font-weight: 600;
+    }
+
+    /* CONTAINER TOGGLES */
+    .view-pane {
+      display: none;
+      width: 100%;
+    }
+
+    .view-pane.active-pane {
       display: flex;
       flex-direction: column;
-      align-items: flex-end;
-      gap: 0.35rem;
+      align-items: center;
+    }
+
+    /* ========================================================= */
+    /* THEME 1: BLUEPRINT STYLES                                 */
+    /* ========================================================= */
+    #pane-blueprint {
+      --bg: #08090b;
+      --grid: rgba(255, 255, 255, 0.035);
+      --wire: #2a2e39;
+      --wire-active: #717786;
+      --node-bg: #0f1117;
+      --node-border: #1f232e;
+      --node-border-hover: #4a5264;
+      --text-title: #f0f2f5;
+      --text-body: #8a919e;
+      --text-muted: #4e5564;
+      --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Consolas, monospace;
+
+      background-color: var(--bg);
+      background-image: 
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 32px 32px;
+      color: var(--text-body);
       font-family: var(--font-mono);
+      min-height: calc(100vh - 42px);
+      padding: 3rem 1.5rem;
+    }
+
+    #pane-blueprint .masthead {
+      width: 100%;
+      max-width: 1040px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--node-border);
+      padding-bottom: 1.25rem;
+      margin-bottom: 3rem;
+    }
+
+    #pane-blueprint .org-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: var(--text-title);
+    }
+
+    #pane-blueprint .spec-id {
       font-size: 0.75rem;
-      color: var(--text-secondary);
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      text-transform: uppercase;
     }
 
-    .badge {
-      display: inline-block;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.7rem;
-      font-weight: 600;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    /* Connecting vector pipe */
-    .pipe {
-      width: 2px;
-      height: 28px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+    #pane-blueprint .blueprint-wrap {
+      width: 100%;
+      max-width: 1040px;
+      background: var(--node-bg);
+      border: 1px solid var(--node-border);
+      border-radius: 2px;
+      padding: 2.5rem 2rem;
       position: relative;
     }
 
-    .pipe::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
+    #pane-blueprint .blueprint-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      border-bottom: 1px dashed var(--node-border);
+      padding-bottom: 1rem;
+    }
+
+    #pane-blueprint .blueprint-header h2 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-title);
+    }
+
+    #pane-blueprint .blueprint-legend {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    #pane-blueprint .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    #pane-blueprint .legend-dot {
       width: 6px;
       height: 6px;
+      background: var(--wire-active);
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.4);
     }
 
-    footer {
-      margin-top: 5rem;
-      text-align: center;
+    #pane-blueprint .schematic-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 1.5rem 0;
+    }
+
+    #pane-blueprint .svg-node {
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    #pane-blueprint .svg-node rect.node-box {
+      fill: #0c0e13;
+      stroke: var(--node-border);
+      stroke-width: 1;
+      transition: stroke 0.15s ease, fill 0.15s ease;
+    }
+
+    #pane-blueprint .svg-node:hover rect.node-box {
+      stroke: var(--node-border-hover);
+      fill: #131720;
+    }
+
+    #pane-blueprint .svg-node text.node-name {
       font-family: var(--font-mono);
-      font-size: 0.8rem;
-      color: #6b7280;
+      font-size: 13px;
+      font-weight: 700;
+      fill: var(--text-title);
+      letter-spacing: 0.08em;
     }
 
-    footer a {
-      color: var(--text-secondary);
+    #pane-blueprint .svg-node text.node-meta {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      fill: var(--text-muted);
+    }
+
+    #pane-blueprint .svg-node:hover text.node-name {
+      fill: #ffffff;
+    }
+
+    #pane-blueprint .svg-wire {
+      stroke: var(--wire);
+      stroke-width: 1.25;
+      stroke-dasharray: 4 3;
+      fill: none;
+    }
+
+    #pane-blueprint .svg-wire-active {
+      stroke: var(--wire-active);
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    #pane-blueprint .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+      border-top: 1px dashed var(--node-border);
+      padding-top: 1.75rem;
+    }
+
+    #pane-blueprint .metric-col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    #pane-blueprint .metric-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    #pane-blueprint .metric-val {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-title);
+    }
+
+    #pane-blueprint .metric-sub {
+      font-size: 0.7rem;
+      color: var(--text-body);
+    }
+
+    #pane-blueprint footer {
+      width: 100%;
+      max-width: 1040px;
+      margin-top: 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--node-border);
+      padding-top: 1.25rem;
+    }
+
+    #pane-blueprint footer a {
+      color: var(--text-body);
       text-decoration: none;
-      margin: 0 0.5rem;
+      border-bottom: 1px dotted var(--node-border-hover);
     }
 
-    footer a:hover {
-      color: var(--text-primary);
+    #pane-blueprint footer a:hover {
+      color: var(--text-title);
     }
 
-    @media (max-width: 680px) {
-      .node-card {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-        padding: 1.25rem;
-      }
-      .node-specs {
+    /* ========================================================= */
+    /* THEME 2: BRUTALIST TERMINAL STYLES                        */
+    /* ========================================================= */
+    #pane-terminal {
+      background: #000000;
+      color: #b0b0b0;
+      font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      min-height: calc(100vh - 42px);
+      padding: 3rem 1.5rem;
+      width: 100%;
+    }
+
+    #pane-terminal .terminal-content {
+      max-width: 960px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    #pane-terminal header {
+      border-bottom: 1px solid #222222;
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    #pane-terminal h1 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.25rem;
+    }
+
+    #pane-terminal .doc-meta {
+      color: #555555;
+      font-size: 11px;
+    }
+
+    #pane-terminal section {
+      margin-bottom: 2.5rem;
+    }
+
+    #pane-terminal h2 {
+      font-size: 12px;
+      font-weight: 700;
+      color: #888888;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 1rem;
+      border-left: 2px solid #444444;
+      padding-left: 0.5rem;
+    }
+
+    #pane-terminal .topology-box {
+      background: #050505;
+      border: 1px solid #1a1a1a;
+      padding: 1.75rem;
+      color: #d4d4d4;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    #pane-terminal .topology-box a {
+      color: #ffffff;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    #pane-terminal .topology-box a:hover {
+      background: #222222;
+    }
+
+    #pane-terminal table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 12px;
+    }
+
+    #pane-terminal th, #pane-terminal td {
+      border: 1px solid #1a1a1a;
+      padding: 0.65rem 0.85rem;
+      text-align: left;
+    }
+
+    #pane-terminal th {
+      background: #080808;
+      color: #777777;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 10.5px;
+      letter-spacing: 0.05em;
+    }
+
+    #pane-terminal td {
+      color: #a0a0a0;
+    }
+
+    #pane-terminal td.code-col {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    #pane-terminal td a {
+      color: #ffffff;
+      text-decoration: none;
+      border-bottom: 1px dotted #555555;
+    }
+
+    #pane-terminal td a:hover {
+      border-bottom: 1px solid #ffffff;
+    }
+
+    #pane-terminal ul.invariants {
+      list-style: none;
+      border: 1px solid #1a1a1a;
+      background: #050505;
+      padding: 1rem 1.25rem;
+    }
+
+    #pane-terminal ul.invariants li {
+      margin-bottom: 0.5rem;
+      color: #888888;
+    }
+
+    #pane-terminal ul.invariants li:last-child {
+      margin-bottom: 0;
+    }
+
+    #pane-terminal ul.invariants strong {
+      color: #d4d4d4;
+    }
+
+    #pane-terminal footer {
+      border-top: 1px solid #1a1a1a;
+      padding-top: 1.5rem;
+      color: #444444;
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    #pane-terminal footer a {
+      color: #666666;
+      text-decoration: none;
+    }
+
+    #pane-terminal footer a:hover {
+      color: #aaaaaa;
+    }
+
+    @media (max-width: 768px) {
+      .top-bar {
+        flex-direction: column;
+        gap: 0.5rem;
         align-items: flex-start;
+      }
+      #pane-blueprint .metrics-grid {
+        grid-template-columns: 1fr 1fr;
       }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="brand">MECOB ARCHITECTURE</div>
-    <h1>The Sovereign Networking Stack</h1>
-    <p class="tagline">Deterministic, zero-garbage-collection infrastructure built in Rust.<br>Wire-speed packet filtering, cryptographic ingress, and recursion.</p>
-  </header>
+  <!-- Top View Switcher -->
+  <aside class="top-bar">
+    <div class="top-meta">KOODOXZ SYSTEM TOPOLOGY // PREVIEW COMPARISON</div>
+    <div class="view-controls">
+      <span class="view-label">LAYOUT:</span>
+      <button id="btn-blueprint" class="view-btn active" onclick="switchView('blueprint')">[ 1: Technical Blueprint ]</button>
+      <button id="btn-terminal" class="view-btn" onclick="switchView('terminal')">[ 2: Terminal Spec ]</button>
+    </div>
+  </aside>
 
-  <main class="ecosystem-container">
+  <!-- ======================================================= -->
+  <!-- OPTION 1: TECHNICAL BLUEPRINT (ACTIVE DEFAULT)          -->
+  <!-- ======================================================= -->
+  <main id="pane-blueprint" class="view-pane active-pane">
+    <header class="masthead">
+      <div class="org-title">KOODOXZ</div>
+      <div class="spec-id">TOPOLOGY SPEC // REV 0.1 // AGPL-3.0</div>
+    </header>
 
-    <!-- Tier 1: Client Edge Proxy -->
-    <a href="https://github.com/koodoxz/caraka" target="_blank" rel="noopener" class="node-card caraka">
-      <div class="node-title-group">
-        <span class="node-title">CARAKA</span>
-        <span class="node-role">Edge Courier</span>
+    <div class="blueprint-wrap">
+      <div class="blueprint-header">
+        <h2>Packet Ingress & Resolution Pipeline</h2>
+        <div class="blueprint-legend">
+          <div class="legend-item"><span class="legend-dot" style="background:#717786;"></span> Encrypted QUIC / Wire</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#2a2e39;"></span> Direct Root Iteration</div>
+        </div>
       </div>
-      <div class="node-desc">
-        Multi-protocol client & proxy. Relays plaintext edge queries into encrypted QUIC/TLS datagrams directly to boundary gateways.
-      </div>
-      <div class="node-specs">
-        <span class="badge">DoQ / DoH / DoT</span>
-        <span>Zero-Copy Client</span>
-      </div>
-    </a>
 
-    <div class="pipe"></div>
+      <svg class="schematic-svg" viewBox="0 0 960 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 8 5 L 0 9 z" fill="#717786"/>
+          </marker>
+          <marker id="arrow-dim" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 8 5 L 0 9 z" fill="#2a2e39"/>
+          </marker>
+        </defs>
 
-    <!-- Tier 2: Kernel Perimeter Defense -->
-    <a href="https://github.com/koodoxz/kalas" target="_blank" rel="noopener" class="node-card kalas">
-      <div class="node-title-group">
-        <span class="node-title">KALAS</span>
-        <span class="node-role">Kernel Sentinel</span>
-      </div>
-      <div class="node-desc">
-        eBPF / XDP autonomous perimeter shield. Drops flood vectors and malformed traffic directly inside the network driver before userspace context switches.
-      </div>
-      <div class="node-specs">
-        <span class="badge">XDP Driver Fastpath</span>
-        <span>&lt; 50ns Drop Latency</span>
-      </div>
-    </a>
+        <!-- Wires -->
+        <path class="svg-wire-active" d="M 120 180 L 175 180" marker-end="url(#arrow)"/>
+        <path class="svg-wire-active" d="M 315 180 L 370 180" marker-end="url(#arrow)"/>
+        <path class="svg-wire-active" d="M 510 180 L 565 180" marker-end="url(#arrow)"/>
+        <path class="svg-wire-active" d="M 705 180 L 760 180" marker-end="url(#arrow)"/>
+        
+        <path class="svg-wire" d="M 440 220 L 440 280 L 830 280 L 830 220" />
+        <path class="svg-wire" d="M 635 280 L 635 315" marker-end="url(#arrow-dim)" />
+        <path class="svg-wire" d="M 830 140 L 830 75 L 500 75" marker-end="url(#arrow-dim)"/>
 
-    <div class="pipe"></div>
+        <!-- Path Labels -->
+        <text x="147" y="170" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8.5" fill="#717786">DNS:53</text>
+        <text x="342" y="170" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8.5" fill="#717786">DoQ:8853</text>
+        <text x="537" y="170" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8.5" fill="#717786">XDP_PASS</text>
+        <text x="732" y="170" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8.5" fill="#717786">IPC / UDS</text>
+        <text x="635" y="65" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8.5" fill="#4e5564">Iterative Root Queries (RFC 1035)</text>
 
-    <!-- Tier 3: Ingress TLS Gateway -->
-    <a href="https://github.com/koodoxz/gapura" target="_blank" rel="noopener" class="node-card gapura">
-      <div class="node-title-group">
-        <span class="node-title">GAPURA</span>
-        <span class="node-role">Ingress Gateway</span>
-      </div>
-      <div class="node-desc">
-        High-throughput ingress reverse proxy. Terminates DoQ, DoH, and DoT sessions, manages session tickets, and routes clean payloads to resolver cores.
-      </div>
-      <div class="node-specs">
-        <span class="badge">Quinn + Rustls</span>
-        <span>Connection Pooling</span>
-      </div>
-    </a>
+        <!-- Node: Client -->
+        <g>
+          <rect x="20" y="150" width="100" height="60" rx="1" fill="#08090b" stroke="#1f232e"/>
+          <text x="70" y="180" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" font-weight="600" fill="#8a919e">CLIENT</text>
+          <text x="70" y="196" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8" fill="#4e5564">STUB / OS</text>
+        </g>
 
-    <div class="pipe"></div>
+        <!-- Node: Caraka -->
+        <a href="https://github.com/koodoxz/caraka" target="_blank" class="svg-node">
+          <rect class="node-box" x="175" y="140" width="140" height="80" rx="1"/>
+          <text class="node-name" x="245" y="172" text-anchor="middle">CARAKA</text>
+          <text class="node-meta" x="245" y="190" text-anchor="middle">EDGE FORWARDER</text>
+          <text class="node-meta" x="245" y="205" text-anchor="middle">0-RTT DoQ PROXY</text>
+        </a>
 
-    <!-- Tier 4: Recursive Core Engine -->
-    <a href="https://github.com/koodoxz/runut" target="_blank" rel="noopener" class="node-card runut">
-      <div class="node-title-group">
-        <span class="node-title">RUNUT</span>
-        <span class="node-role">Recursive Core</span>
-      </div>
-      <div class="node-desc">
-        High-performance recursive resolver and cache engine. Bypasses standard kernel sockets with AF_XDP, delivering sub-millisecond recursive queries.
-      </div>
-      <div class="node-specs">
-        <span class="badge">AF_XDP Native Core</span>
-        <span>Zero-GC Memory Pool</span>
-      </div>
-    </a>
+        <!-- Node: Kalas -->
+        <a href="https://github.com/koodoxz/kalas" target="_blank" class="svg-node">
+          <rect class="node-box" x="370" y="140" width="140" height="80" rx="1"/>
+          <text class="node-name" x="440" y="172" text-anchor="middle">KALAS</text>
+          <text class="node-meta" x="440" y="190" text-anchor="middle">KERNEL SENTRY</text>
+          <text class="node-meta" x="440" y="205" text-anchor="middle">eBPF / AF_XDP (L3/L4)</text>
+        </a>
 
+        <!-- Node: Gapura -->
+        <a href="https://github.com/koodoxz/gapura" target="_blank" class="svg-node">
+          <rect class="node-box" x="565" y="140" width="140" height="80" rx="1"/>
+          <text class="node-name" x="635" y="172" text-anchor="middle">GAPURA</text>
+          <text class="node-meta" x="635" y="190" text-anchor="middle">INGRESS GATEWAY</text>
+          <text class="node-meta" x="635" y="205" text-anchor="middle">TLS / DoH / DoT / DoQ</text>
+        </a>
+
+        <!-- Node: Runut -->
+        <a href="https://github.com/koodoxz/runut" target="_blank" class="svg-node">
+          <rect class="node-box" x="760" y="140" width="140" height="80" rx="1"/>
+          <text class="node-name" x="830" y="172" text-anchor="middle">RUNUT</text>
+          <text class="node-meta" x="830" y="190" text-anchor="middle">CORE RESOLVER</text>
+          <text class="node-meta" x="830" y="205" text-anchor="middle">ZERO-GC ROOT DNS</text>
+        </a>
+
+        <!-- Node: Tameng -->
+        <a href="https://github.com/koodoxz/tameng" target="_blank" class="svg-node">
+          <rect class="node-box" x="555" y="315" width="160" height="50" rx="1"/>
+          <text class="node-name" x="635" y="337" text-anchor="middle" font-size="11">TAMENG (L7 WAF)</text>
+          <text class="node-meta" x="635" y="352" text-anchor="middle">DYNAMIC THREAT INTELLIGENCE</text>
+        </a>
+
+        <!-- Node: 13 Root Servers -->
+        <g>
+          <rect x="340" y="50" width="160" height="45" rx="1" fill="#08090b" stroke="#1f232e"/>
+          <text x="420" y="73" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" font-weight="600" fill="#8a919e">13 ROOT SERVERS</text>
+          <text x="420" y="86" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8" fill="#4e5564">A.ROOT .. M.ROOT</text>
+        </g>
+      </svg>
+
+      <div class="metrics-grid">
+        <div class="metric-col">
+          <span class="metric-label">Memory Invariant</span>
+          <span class="metric-val">Zero Garbage Collection</span>
+          <span class="metric-sub">Strict ownership & arena allocation</span>
+        </div>
+        <div class="metric-col">
+          <span class="metric-label">Perimeter Defense</span>
+          <span class="metric-val">eBPF / XDP Line-Rate</span>
+          <span class="metric-sub">Packets dropped at NIC driver</span>
+        </div>
+        <div class="metric-col">
+          <span class="metric-label">Edge Transport</span>
+          <span class="metric-val">QUIC / RFC 9250</span>
+          <span class="metric-sub">0-RTT session resumption</span>
+        </div>
+        <div class="metric-col">
+          <span class="metric-label">Resolution Logic</span>
+          <span class="metric-val">Direct Root Iteration</span>
+          <span class="metric-sub">Zero dependence on 8.8.8.8 / 1.1.1.1</span>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div>KOODOXZ OPEN SOURCE ECOSYSTEM // LICENSED AGPL-3.0-OR-LATER</div>
+      <div><a href="https://github.com/koodoxz">GitHub Organization</a></div>
+    </footer>
   </main>
 
-  <footer>
-    <p>All components open source under AGPL-3.0-or-later &middot; Designed for Sovereign Infrastructure</p>
-    <p style="margin-top: 0.5rem;">
-      <a href="https://github.com/koodoxz" target="_blank" rel="noopener">GitHub Organization</a> &middot;
-      <a href="https://github.com/koodoxz/runut" target="_blank" rel="noopener">Runut v0.1.0</a>
-    </p>
-  </footer>
+  <!-- ======================================================= -->
+  <!-- OPTION 2: BRUTALIST TERMINAL SPEC                       -->
+  <!-- ======================================================= -->
+  <main id="pane-terminal" class="view-pane">
+    <div class="terminal-content">
+      <header>
+        <h1>KOODOXZ // SOVEREIGN NETWORKING STACK</h1>
+        <div class="doc-meta">DOCUMENT: RFC-KDXZ-ARCH-01 | CLASSIFICATION: OPEN SOURCE (AGPL-3.0) | TARGET: LINUX KERNEL / RUST</div>
+      </header>
+
+      <section>
+        <h2>01. End-to-End Packet Ingress Topology</h2>
+        <div class="topology-box"><pre>
+  [ Client Workstation / Localhost Stub ]
+                     │
+                     │  Plaintext DNS (127.0.0.1:53)
+                     ▼
+             ┌──────────────┐
+             │  <a href="https://github.com/koodoxz/caraka">CARAKA</a>      │  0-RTT DNS over QUIC (DoQ) Edge Client
+             └──────┬───────┘
+                    │  Encrypted QUIC Payload (UDP :8853)
+                    ▼
+             ┌──────────────┐
+             │  <a href="https://github.com/koodoxz/kalas">KALAS</a>       │  Layer 3 & 4 eBPF / XDP Kernel Sentry
+             └──────┬───────┘  (Drops SYN-floods & volumetric attacks at NIC wire speed)
+                    │  Validated Ingress Packets (XDP_PASS)
+                    ▼
+             ┌──────────────┐
+             │  <a href="https://github.com/koodoxz/gapura">GAPURA</a>      │  Ingress Gateway: Rate Limiting & TLS/DoH/DoT/DoQ Termination
+             └──────┬───────┘
+                    │  Zero-Copy Internal Wire / Unix Domain Socket
+                    ▼
+             ┌──────────────┐        Real-Time Feeds        ┌──────────────┐
+             │  <a href="https://github.com/koodoxz/runut">RUNUT</a>       │ ◄───────────────────────────► │  <a href="https://github.com/koodoxz/tameng">TAMENG</a>      │
+             └──────┬───────┘   Sharded Bloom Filter Sync   └──────────────┘
+                    │           DGA / Tunneling Detection    Autonomous L7 WAF
+                    │
+                    ▼  Direct Iterative Resolution (RFC 1035)
+     [ 13 INTERNET ROOT SERVERS (A.ROOT-SERVERS.NET .. M.ROOT-SERVERS.NET) ]
+</pre></div>
+      </section>
+
+      <section>
+        <h2>02. Component Registry & Specification Matrix</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Subsystem</th>
+              <th>Layer</th>
+              <th>Primary Mechanism</th>
+              <th>Deterministic Target</th>
+              <th>Repository</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="code-col">CARAKA</td>
+              <td>Endpoint / Edge</td>
+              <td>DNS over QUIC (RFC 9250) client relay</td>
+              <td>0-RTT handshake, &lt; 15 MB footprint</td>
+              <td><a href="https://github.com/koodoxz/caraka">koodoxz/caraka</a></td>
+            </tr>
+            <tr>
+              <td class="code-col">KALAS</td>
+              <td>Layer 3 / 4</td>
+              <td>eBPF / AF_XDP NIC driver hook</td>
+              <td>Sub-microsecond XDP_DROP at wire speed</td>
+              <td><a href="https://github.com/koodoxz/kalas">koodoxz/kalas</a></td>
+            </tr>
+            <tr>
+              <td class="code-col">GAPURA</td>
+              <td>Transport / TLS</td>
+              <td>Multi-protocol gateway (DoH, DoT, DoQ)</td>
+              <td>Token-bucket rate limiting per /64 subnet</td>
+              <td><a href="https://github.com/koodoxz/gapura">koodoxz/gapura</a></td>
+            </tr>
+            <tr>
+              <td class="code-col">RUNUT</td>
+              <td>Layer 7 (DNS Core)</td>
+              <td>Zero-GC recursive iterative root resolver</td>
+              <td>P99 &lt; 1.00 ms, lock-free LRU sharding</td>
+              <td><a href="https://github.com/koodoxz/runut">koodoxz/runut</a></td>
+            </tr>
+            <tr>
+              <td class="code-col">TAMENG</td>
+              <td>Layer 7 (WAF)</td>
+              <td>Behavioral defense & ML-assisted heuristics</td>
+              <td>Live threat feed sync across perimeter</td>
+              <td><a href="https://github.com/koodoxz/tameng">koodoxz/tameng</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>03. Core Invariants</h2>
+        <ul class="invariants">
+          <li>&bull; <strong>Zero Garbage Collection:</strong> Written in pure Rust with strict lifetime ownership to prevent memory latency spikes.</li>
+          <li>&bull; <strong>Sovereign Hierarchy:</strong> Resolves directly from the 13 Root Servers without upstream telemetry tracking.</li>
+          <li>&bull; <strong>Driver-Level Dropping:</strong> Volumetric attacks are eliminated via XDP before entering userspace application memory.</li>
+        </ul>
+      </section>
+
+      <footer>
+        <div>KOODOXZ FOUNDATION &middot; AGPL-3.0-OR-LATER</div>
+        <div><a href="https://github.com/koodoxz">github.com/koodoxz</a></div>
+      </footer>
+    </div>
+  </main>
+
+  <!-- Interactive Switcher Script -->
+  <script>
+    function switchView(viewName) {
+      const btnBlueprint = document.getElementById('btn-blueprint');
+      const btnTerminal = document.getElementById('btn-terminal');
+      const paneBlueprint = document.getElementById('pane-blueprint');
+      const paneTerminal = document.getElementById('pane-terminal');
+
+      if (viewName === 'terminal') {
+        btnTerminal.classList.add('active');
+        btnBlueprint.classList.remove('active');
+        paneTerminal.classList.add('active-pane');
+        paneBlueprint.classList.remove('active-pane');
+        window.location.hash = 'terminal';
+      } else {
+        btnBlueprint.classList.add('active');
+        btnTerminal.classList.remove('active');
+        paneBlueprint.classList.add('active-pane');
+        paneTerminal.classList.remove('active-pane');
+        window.location.hash = 'blueprint';
+      }
+    }
+
+    // Auto-select based on hash if present
+    if (window.location.hash === '#terminal') {
+      switchView('terminal');
+    }
+  </script>
 
 </body>
 </html>

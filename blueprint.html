@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KOODOXZ — Systems Architecture Blueprint</title>
+  <meta name="description" content="Technical schematic and data-flow topology of the Koodoxz sovereign networking ecosystem.">
+  <style>
+    :root {
+      --bg: #08090b;
+      --grid: rgba(255, 255, 255, 0.035);
+      --wire: #2a2e39;
+      --wire-active: #717786;
+      --node-bg: #0f1117;
+      --node-border: #1f232e;
+      --node-border-hover: #4a5264;
+      --text-title: #f0f2f5;
+      --text-body: #8a919e;
+      --text-muted: #4e5564;
+      --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 32px 32px;
+      color: var(--text-body);
+      font-family: var(--font-mono);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1.5rem;
+    }
+
+    /* Top Technical Masthead */
+    .masthead {
+      width: 100%;
+      max-width: 1040px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--node-border);
+      padding-bottom: 1.25rem;
+      margin-bottom: 3rem;
+    }
+
+    .org-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: var(--text-title);
+    }
+
+    .spec-id {
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* Canvas Blueprint Container */
+    .blueprint-wrap {
+      width: 100%;
+      max-width: 1040px;
+      background: var(--node-bg);
+      border: 1px solid var(--node-border);
+      border-radius: 2px;
+      padding: 2.5rem 2rem;
+      position: relative;
+    }
+
+    .blueprint-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      border-bottom: 1px dashed var(--node-border);
+      padding-bottom: 1rem;
+    }
+
+    .blueprint-header h2 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-title);
+    }
+
+    .blueprint-legend {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .legend-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--wire-active);
+      border-radius: 50%;
+    }
+
+    /* SVG Schematic */
+    .schematic-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 1.5rem 0;
+    }
+
+    /* Interactive Node Styles inside SVG */
+    .svg-node {
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .svg-node rect.node-box {
+      fill: #0c0e13;
+      stroke: var(--node-border);
+      stroke-width: 1;
+      transition: stroke 0.15s ease, fill 0.15s ease;
+    }
+
+    .svg-node:hover rect.node-box {
+      stroke: var(--node-border-hover);
+      fill: #131720;
+    }
+
+    .svg-node text.node-name {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      fill: var(--text-title);
+      letter-spacing: 0.08em;
+    }
+
+    .svg-node text.node-meta {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      fill: var(--text-muted);
+    }
+
+    .svg-node:hover text.node-name {
+      fill: #ffffff;
+    }
+
+    .svg-wire {
+      stroke: var(--wire);
+      stroke-width: 1.25;
+      stroke-dasharray: 4 3;
+      fill: none;
+    }
+
+    .svg-wire-active {
+      stroke: var(--wire-active);
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    /* Technical Metrics Summary Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+      border-top: 1px dashed var(--node-border);
+      padding-top: 1.75rem;
+    }
+
+    .metric-col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .metric-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .metric-val {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-title);
+    }
+
+    .metric-sub {
+      font-size: 0.7rem;
+      color: var(--text-body);
+    }
+
+    /* Footer */
+    footer {
+      width: 100%;
+      max-width: 1040px;
+      margin-top: 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--node-border);
+      padding-top: 1.25rem;
+    }
+
+    footer a {
+      color: var(--text-body);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--node-border-hover);
+    }
+
+    footer a:hover {
+      color: var(--text-title);
+    }
+
+    @media (max-width: 768px) {
+      .metrics-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .masthead, footer {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="org-title">KOODOXZ</div>
+    <div class="spec-id">TOPOLOGY SPEC // REV 0.1 // AGPL-3.0</div>
+  </header>
+
+  <main class="blueprint-wrap">
+    <div class="blueprint-header">
+      <h2>Packet Ingress & Resolution Pipeline</h2>
+      <div class="blueprint-legend">
+        <div class="legend-item"><span class="legend-dot" style="background:#525866;"></span> Encrypted QUIC / Wire</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#2a2e39;"></span> Direct Root Iteration</div>
+      </div>
+    </div>
+
+    <!-- Scalable Vector Architecture Schematic -->
+    <svg class="schematic-svg" viewBox="0 0 960 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 8 5 L 0 9 z" fill="#525866"/>
+        </marker>
+        <marker id="arrow-dim" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 8 5 L 0 9 z" fill="#2a2e39"/>
+        </marker>
+      </defs>
+
+      <!-- Connection Lines -->
+      <!-- Client to Caraka -->
+      <path class="svg-wire-active" d="M 120 180 L 175 180" marker-end="url(#arrow)"/>
+      
+      <!-- Caraka to Kalas -->
+      <path class="svg-wire-active" d="M 315 180 L 370 180" marker-end="url(#arrow)"/>
+
+      <!-- Kalas to Gapura -->
+      <path class="svg-wire-active" d="M 510 180 L 565 180" marker-end="url(#arrow)"/>
+
+      <!-- Gapura to Runut -->
+      <path class="svg-wire-active" d="M 705 180 L 760 180" marker-end="url(#arrow)"/>
+
+      <!-- Tameng Threat Feed (Bidirectional to Kalas/Runut) -->
+      <path class="svg-wire" d="M 440 220 L 440 280 L 830 280 L 830 220" />
+      <path class="svg-wire" d="M 635 280 L 635 315" marker-end="url(#arrow-dim)" />
+
+      <!-- Runut to Internet Root Servers -->
+      <path class="svg-wire" d="M 830 140 L 830 75 L 500 75" marker-end="url(#arrow-dim)"/>
+
+      <!-- LABELS ON PATHS -->
+      <text x="147" y="170" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8.5" fill="#525866">DNS:53</text>
+      <text x="342" y="170" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8.5" fill="#525866">DoQ:8853</text>
+      <text x="537" y="170" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8.5" fill="#525866">XDP_PASS</text>
+      <text x="732" y="170" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8.5" fill="#525866">IPC / UDS</text>
+      <text x="635" y="65" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8.5" fill="#3f4553">Iterative Root Queries (RFC 1035)</text>
+
+      <!-- NODE: Client -->
+      <g>
+        <rect x="20" y="150" width="100" height="60" rx="1" fill="#08090b" stroke="#1f232e"/>
+        <text x="70" y="180" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" font-weight="600" fill="#8a919e">CLIENT</text>
+        <text x="70" y="196" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8" fill="#4e5564">STUB / OS</text>
+      </g>
+
+      <!-- NODE: Caraka -->
+      <a href="https://github.com/koodoxz/caraka" target="_blank" class="svg-node">
+        <rect class="node-box" x="175" y="140" width="140" height="80" rx="1"/>
+        <text class="node-name" x="245" y="172" text-anchor="middle">CARAKA</text>
+        <text class="node-meta" x="245" y="190" text-anchor="middle">EDGE FORWARDER</text>
+        <text class="node-meta" x="245" y="205" text-anchor="middle">0-RTT DoQ PROXY</text>
+      </a>
+
+      <!-- NODE: Kalas -->
+      <a href="https://github.com/koodoxz/kalas" target="_blank" class="svg-node">
+        <rect class="node-box" x="370" y="140" width="140" height="80" rx="1"/>
+        <text class="node-name" x="440" y="172" text-anchor="middle">KALAS</text>
+        <text class="node-meta" x="440" y="190" text-anchor="middle">KERNEL SENTRY</text>
+        <text class="node-meta" x="440" y="205" text-anchor="middle">eBPF / AF_XDP (L3/L4)</text>
+      </a>
+
+      <!-- NODE: Gapura -->
+      <a href="https://github.com/koodoxz/gapura" target="_blank" class="svg-node">
+        <rect class="node-box" x="565" y="140" width="140" height="80" rx="1"/>
+        <text class="node-name" x="635" y="172" text-anchor="middle">GAPURA</text>
+        <text class="node-meta" x="635" y="190" text-anchor="middle">INGRESS GATEWAY</text>
+        <text class="node-meta" x="635" y="205" text-anchor="middle">TLS / DoH / DoT / DoQ</text>
+      </a>
+
+      <!-- NODE: Runut -->
+      <a href="https://github.com/koodoxz/runut" target="_blank" class="svg-node">
+        <rect class="node-box" x="760" y="140" width="140" height="80" rx="1"/>
+        <text class="node-name" x="830" y="172" text-anchor="middle">RUNUT</text>
+        <text class="node-meta" x="830" y="190" text-anchor="middle">CORE RESOLVER</text>
+        <text class="node-meta" x="830" y="205" text-anchor="middle">ZERO-GC ROOT DNS</text>
+      </a>
+
+      <!-- NODE: Tameng -->
+      <a href="https://github.com/koodoxz/tameng" target="_blank" class="svg-node">
+        <rect class="node-box" x="555" y="315" width="160" height="50" rx="1"/>
+        <text class="node-name" x="635" y="337" text-anchor="middle" font-size="11">TAMENG (L7 WAF)</text>
+        <text class="node-meta" x="635" y="352" text-anchor="middle">DYNAMIC THREAT INTELLIGENCE</text>
+      </a>
+
+      <!-- NODE: 13 Root Servers -->
+      <g>
+        <rect x="340" y="50" width="160" height="45" rx="1" fill="#08090b" stroke="#1f232e"/>
+        <text x="420" y="73" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" font-weight="600" fill="#8a919e">13 ROOT SERVERS</text>
+        <text x="420" y="86" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8" fill="#4e5564">A.ROOT .. M.ROOT</text>
+      </g>
+    </svg>
+
+    <!-- Technical Metrics Grid -->
+    <div class="metrics-grid">
+      <div class="metric-col">
+        <span class="metric-label">Memory Invariant</span>
+        <span class="metric-val">Zero Garbage Collection</span>
+        <span class="metric-sub">Strict ownership & arena allocation</span>
+      </div>
+      <div class="metric-col">
+        <span class="metric-label">Perimeter Defense</span>
+        <span class="metric-val">eBPF / XDP Line-Rate</span>
+        <span class="metric-sub">Packets dropped at NIC driver</span>
+      </div>
+      <div class="metric-col">
+        <span class="metric-label">Edge Transport</span>
+        <span class="metric-val">QUIC / RFC 9250</span>
+        <span class="metric-sub">0-RTT session resumption</span>
+      </div>
+      <div class="metric-col">
+        <span class="metric-label">Resolution Logic</span>
+        <span class="metric-val">Direct Root Iteration</span>
+        <span class="metric-sub">Zero dependence on 8.8.8.8 / 1.1.1.1</span>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div>KOODOXZ OPEN SOURCE ECOSYSTEM // LICENSED AGPL-3.0-OR-LATER</div>
+    <div>
+      <a href="https://github.com/koodoxz">GitHub Organization</a>
+    </div>
+  </footer>
+
+</body>
+</html>
